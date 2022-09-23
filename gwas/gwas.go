@@ -1,10 +1,8 @@
 package gwas
 
 import (
-	"bufio"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"go.dedis.ch/onet/v3/log"
@@ -204,66 +202,71 @@ func InitializeGWASProtocol(config *Config, pid int, mpcOnly bool) (gwasProt *Pr
 		cps = networks.CollectiveInit(params, prec)
 	}
 
-	var pheno, cov *mat.Dense
+	var a, b *mat.Dense
+	//var pheno, cov *mat.Dense
+	//
 	var pos []uint64
 	var genofs []*GenoFileStream
 	var genoBlockSizes []int
 
-	isPgen := config.GenoFileFormat == "pgen"
+	//isPgen := config.GenoFileFormat == "pgen"
 
-	genofs = make([]*GenoFileStream, config.GenoNumBlocks)
-	genoBlockSizes = make([]int, config.GenoNumBlocks)
+	//genofs = make([]*GenoFileStream, config.GenoNumBlocks)
+	//genoBlockSizes = make([]int, config.GenoNumBlocks)
 
 	if pid > 0 {
 		// Read geno block size file
-		file, err := os.Open(config.GenoBlockSizeFile)
+		//file, err := os.Open(config.GenoBlockSizeFile)
+		//
+		//if err != nil {
+		//	log.Fatalf("failed to open:", config.GenoBlockSizeFile)
+		//}
+		//scanner := bufio.NewScanner(file)
+		//scanner.Split(bufio.ScanLines)
+		//
+		//for i := 0; i < config.GenoNumBlocks; i++ {
+		//	if !scanner.Scan() {
+		//		log.Fatalf("not enough lines in", config.GenoBlockSizeFile)
+		//	}
+		//
+		//	genoBlockSizes[i], err = strconv.Atoi(scanner.Text())
+		//	if err != nil {
+		//		log.Fatalf("parse error:", config.GenoBlockSizeFile)
+		//	}
+		//}
 
-		if err != nil {
-			log.Fatalf("failed to open:", config.GenoBlockSizeFile)
-		}
-		scanner := bufio.NewScanner(file)
-		scanner.Split(bufio.ScanLines)
+		//if scanner.Scan() {
+		//	log.Fatalf("too many lines in", config.GenoBlockSizeFile)
+		//}
+		//
+		//file.Close()
+		//
+		//totalSize := 0
+		//for _, v := range genoBlockSizes {
+		//	totalSize += v
+		//}
+		//if totalSize != config.NumSnps {
+		//	log.Fatalf("Sum of block sizes does not match number of snps")
+		//}
+		//
+		//if !isPgen {
+		//	// Create file streams for geno block files
+		//	for i := range genofs {
+		//		filename := fmt.Sprintf("%s.%d.bin", config.GenoFilePrefix, i)
+		//		log.LLvl1(time.Now().Format(time.RFC3339), "Opening geno file:", filename)
+		//		genofs[i] = NewGenoFileStream(filename, uint64(config.NumInds[pid]), uint64(genoBlockSizes[i]), false)
+		//	}
+		//}
 
-		for i := 0; i < config.GenoNumBlocks; i++ {
-			if !scanner.Scan() {
-				log.Fatalf("not enough lines in", config.GenoBlockSizeFile)
-			}
+		//tab := '\t'
+		a := LoadMatrixFromFileFloat(config.PhenoFile, ',')
+		b := LoadMatrixFromFileFloat(config.CovFile, ',')
+		//pos = LoadSNPPositionFile(config.SnpPosFile, tab)
+		log.LLvl1(time.Now().Format(time.RFC3339), "First few CovFile positions:", config.PhenoFile, a[0][0])
 
-			genoBlockSizes[i], err = strconv.Atoi(scanner.Text())
-			if err != nil {
-				log.Fatalf("parse error:", config.GenoBlockSizeFile)
-			}
-		}
-
-		if scanner.Scan() {
-			log.Fatalf("too many lines in", config.GenoBlockSizeFile)
-		}
-
-		file.Close()
-
-		totalSize := 0
-		for _, v := range genoBlockSizes {
-			totalSize += v
-		}
-		if totalSize != config.NumSnps {
-			log.Fatalf("Sum of block sizes does not match number of snps")
-		}
-
-		if !isPgen {
-			// Create file streams for geno block files
-			for i := range genofs {
-				filename := fmt.Sprintf("%s.%d.bin", config.GenoFilePrefix, i)
-				log.LLvl1(time.Now().Format(time.RFC3339), "Opening geno file:", filename)
-				genofs[i] = NewGenoFileStream(filename, uint64(config.NumInds[pid]), uint64(genoBlockSizes[i]), false)
-			}
-		}
-
-		tab := '\t'
-		pheno = LoadMatrixFromFile(config.PhenoFile, tab)
-		cov = LoadMatrixFromFile(config.CovFile, tab)
-		pos = LoadSNPPositionFile(config.SnpPosFile, tab)
-		log.LLvl1(time.Now().Format(time.RFC3339), "First few SNP positions:", pos[:5])
+		log.LLvl1(time.Now().Format(time.RFC3339), "First few CovFile positions22:", config.CovFile, b[0][0])
 	}
+	//return nil
 
 	gwasParams := InitGWASParams(config.NumInds, config.NumSnps, config.NumCovs, config.NumPCs, config.SnpDistThres)
 
@@ -273,8 +276,8 @@ func InitializeGWASProtocol(config *Config, pid int, mpcOnly bool) (gwasProt *Pr
 
 		genoBlocks:     genofs,
 		genoBlockSizes: genoBlockSizes,
-		pheno:          pheno,
-		cov:            cov,
+		pheno:          a,
+		cov:            b,
 		pos:            pos,
 
 		gwasParams: gwasParams,
@@ -398,6 +401,13 @@ func (g *ProtocolInfo) GWAS() {
 	g.Phase1()
 	Qpca := g.Phase2()
 	g.Phase3(Qpca)
+}
+
+func (g *ProtocolInfo) MatMult() {
+
+	log.LLvl1(time.Now().Format(time.RFC3339), "Starting Matrix Multiplication protocol")
+
+	g.CZeroTest()
 }
 
 func (g *ProtocolInfo) CZeroTest() {

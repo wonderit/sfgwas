@@ -41,6 +41,9 @@ func InitParallelMPCEnv(netObjs []*Network, rtype mpc_core.RElem, dataBits, frac
 	mpcEnvParallel := make([]*MPC, len(netObjs))
 	mpcEnvParallel[0] = initMPCEnv(netObjs[0], rtype, dataBits, fracBits)
 	lagrangeCache := mpcEnvParallel[0].lagrangeCache
+	fmt.Println("test lagrange")
+	fmt.Println(lagrangeCache)
+	return nil
 
 	for i := 1; i < len(netObjs); i++ {
 		mpcEnvParallel[i] = &MPC{

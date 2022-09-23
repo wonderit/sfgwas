@@ -5,8 +5,10 @@ shared_keys_path = "example_data/keys"
 geno_binary_file_prefix = "example_data/party2/geno/chr%d"
 geno_num_blocks = 22
 geno_block_size_file = "example_data/party2/chrom_sizes.txt"
-pheno_file = "example_data/party2/pheno.txt"
-covar_file = "example_data/party2/cov.txt"
+#pheno_file = "example_data/party2/pheno.txt"
+#covar_file = "example_data/party2/cov.txt"
+pheno_file = "example_data_multmat/a.txt"
+covar_file = "example_data_multmat/b.txt"
 snp_position_file = "example_data/party2/snp_pos.txt"
 
 ## PGEN parameters

@@ -9,7 +9,6 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/hhcho/sfgwas-private/gwas"
-	"github.com/raulk/go-watchdog"
 )
 
 // Expects a party ID provided as an environment variable;
@@ -49,7 +48,7 @@ func InitProtocol(configPath string) *gwas.ProtocolInfo {
 	// Set max number of threads
 	runtime.GOMAXPROCS(config.LocalNumThreads)
 
-	return gwas.InitializeGWASProtocol(config, PID, false)
+	return gwas.InitializeGWASProtocol(config, PID, true)
 }
 
 func RunGWAS() {
@@ -61,14 +60,14 @@ func RunGWAS() {
 	prot := InitProtocol(CONFIG_PATH)
 
 	// Invoke memory manager
-	err, stopFn := watchdog.HeapDriven(prot.GetConfig().MemoryLimit, 40, watchdog.NewAdaptivePolicy(0.5))
-	if err != nil {
-		panic(err)
-	}
-	defer stopFn()
+	//err, stopFn := watchdog.HeapDriven(prot.GetConfig().MemoryLimit, 40, watchdog.NewAdaptivePolicy(0.5))
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer stopFn()
 
 	// Run protocol
-	prot.GWAS()
+	prot.MatMult()
 
 	prot.SyncAndTerminate(true)
 }

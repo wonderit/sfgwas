@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hhcho/sfgwas-private/crypto"
 	"github.com/hhcho/sfgwas-private/mpc"
@@ -306,12 +307,16 @@ func LoadMatrixFromFileFloat(filename string, delim rune) [][]float64 {
 	columns := c.FieldsPerRecord
 	lines := len(text)
 
+	fmt.Println("load m f f f", columns, lines)
+
 	data := make([][]float64, lines)
 	for i := 0; i < lines; i++ {
 		data[i] = make([]float64, columns)
 		for j := 0; j < columns; j++ {
 			data[i][j], err = strconv.ParseFloat(text[i][j], 64)
+			fmt.Print(data[i][j], " ")
 		}
+		fmt.Print("\n")
 	}
 
 	return data
@@ -334,8 +339,11 @@ func LoadMatrixFromFile(filename string, delim rune) *mat.Dense {
 
 	data := make([]float64, columns*lines)
 
+	fmt.Sprint(time.Now().Format(time.RFC3339), "Load Matrix From File:", columns, lines)
 	for i := 0; i < lines; i++ {
 		for j := 0; j < columns; j++ {
+
+			fmt.Sprint(time.Now().Format(time.RFC3339), "Load Matrix From File:", text[i][j])
 			data[i*columns+j], err = strconv.ParseFloat(text[i][j], 64)
 		}
 	}

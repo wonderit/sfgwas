@@ -1,0 +1,5 @@
+.idea/
+cache/
+go.sum
+plink2
+stdout*.txt
